@@ -1,0 +1,97 @@
+SELECT 
+    'DICE: Bikes Q1, Eastern Regions, Price $500-$2000' AS operation,
+    month_name,
+    product_name,
+    store_city,
+    customer_city,
+    COUNT(*) AS transactions,
+    SUM(quantity) AS bikes_sold,
+    SUM(total_amount) AS total_sales
+FROM sales_cube
+WHERE quarter = 1
+  AND subcategory = 'Bikes'
+  AND total_amount BETWEEN 500 AND 2000
+  AND store_region = 'East'
+GROUP BY month_name, product_name, store_city, customer_city
+ORDER BY total_sales DESC;
+
+-- DICE 4: Multi-dimensional dice (4 dimensions)
+SELECT 
+    'DICE: Complex Multi-Dimension Filter' AS operation,
+    quarter,
+    subcategory,
+    brand,
+    store_region,
+    customer_region,
+    COUNT(*) AS transactions,
+    SUM(quantity) AS units,
+    SUM(total_amount) AS total_sales,
+    AVG(discount) AS avg_discount
+FROM sales_cube
+WHERE year = 2024
+  AND quarter IN (2, 3, 4)
+  AND category = 'Vehicles'
+  AND store_region IN ('West', 'East')
+  AND discount > 0
+GROUP BY quarter, subcategory, brand, store_region, customer_region
+ORDER BY total_sales DESC;
+
+
+-- ============================================================
+-- 3. ROLL-UP OPERATION (Aggregation/Consolidation)
+-- ============================================================
+-- Roll-up: Aggregation by climbing up concept hierarchy
+-- Moves from detailed level to summarized level
+-- ============================================================
+
+-- ROLL-UP 1: From Daily → Weekly → Monthly → Quarterly → Yearly
+-- Level 1: Daily sales
+SELECT 
+    'ROLL-UP Level 1: Daily' AS aggregation_level,
+    full_date AS time_period,
+    COUNT(*) AS transactions,
+    SUM(total_amount) AS total_sales
+FROM sales_cube
+WHERE year = 2024 AND month IN (1, 2)
+GROUP BY full_date
+ORDER BY full_date
+LIMIT 10;
+
+-- Level 2: Weekly sales
+SELECT 
+    'ROLL-UP Level 2: Weekly' AS aggregation_level,
+    year,
+    week_of_year AS time_period,
+    COUNT(*) AS transactions,
+    SUM(total_amount) AS total_sales
+FROM sales_cube
+WHERE year = 2024 AND month IN (1, 2)
+GROUP BY year, week_of_year
+ORDER BY year, week_of_year;
+
+https://drive.google.com/drive/folders/1oKsKQtZ5F3TZUxtgZlMFksKMt9ogAXPn
+
+-- Level 3: Monthly sales
+SELECT 
+    'ROLL-UP Level 3: Monthly' AS aggregation_level,
+    year,
+    month,
+    month_name AS time_period,
+    COUNT(*) AS transactions,
+    SUM(total_amount) AS total_sales
+FROM sales_cube
+WHERE year = 2024
+GROUP BY year, month, month_name
+ORDER BY year, month;
+
+-- Level 4: Quarterly sales
+SELECT 
+    'ROLL-UP Level 4: Quarterly' AS aggregation_level,
+    year,
+    quarter AS time_period,
+    COUNT(*) AS transactions,
+    SUM(total_amount) AS total_sales
+FROM sales_cube
+WHERE year = 2024
+GROUP BY year, quarter
+ORDER BY year, quarter;
